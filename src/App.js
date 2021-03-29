@@ -1,18 +1,63 @@
 //import serverURL from './getServerURL';
 import React, { useState, useEffect } from 'react';
-import redditIcon from './reddit.svg'
+import redditIcon from './reddit.svg';
+import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const [posts, setPosts] = useState([]);
+  const [postInput, setPostInput] = useState("");
 
   useEffect(()=>{
-    fetch(`http://localhost:7000/posts`)
+    getPosts()
+  },[])
+
+  const getPosts = () =>{
+    fetch(`http://localhost:3000/posts`)
     .then(res => res.json())
     .then(resJSON => {
       setPosts(resJSON)
     });
-  },[])
+  }
+
+  const createPost = (e) => {
+    e.preventDefault();
+    axios.post('http://localhost:3000/posts', {
+        text: postInput,
+        userName: "melinda",
+    })
+    .then(function (response) {
+      if(response.data.message==="success"){
+        getPosts()
+      }
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  }
+
+  const showPosts = (posts) => {
+    let postEl = posts.map((post, index)=>{
+      return (
+        <div className="container rounded m-2" style={{backgroundColor:"#F6F7F8", color:"black"}} key={index}>
+          {post.text}
+          <button className="float-right btn btn-dark m-2" onClick={editPost}>Edit</button>
+          <button className="float-right btn btn-dark m-2" onClick={deletePost}>Delete</button>
+        </div>
+      )
+    })
+    return postEl;
+  }
+
+  const deletePost = () => {
+    //fetch to delete post
+    //need post id
+  }
+
+  const editPost = () => {
+   //fetch to update post
+    //need post id
+  }
 
   return (
     <div className="App">
@@ -39,28 +84,32 @@ function App() {
       </div>
 
       <div className="bg-dark" style={{color:"white", height:'100vh'}}>
+        <form onSubmit={createPost} className="p-2 pl-5">
+          <label>
+            <h2>
+              Create Post
+            </h2>
+            <input 
+              type="text" 
+              value={postInput} 
+              onChange={(e)=>setPostInput(e.target.value)} 
+              placeholder="Write your thoughts"
+              name="text"
+              style={{color:"black"}}
+            />
+          </label>
+          <input type="submit" style={{color:"black"}}/>
+        </form>
         <h2 className="p-2 pl-5">
           Posts
         </h2>
-        <div>
-          {/* {posts.map(post=> console.log(post))} */}
+        <div className="p-2 pl-5 overflow-auto" style={{maxHeight:"40em"}}>
           {showPosts(posts)}
         </div>
       </div>
 
     </div>
   );
-}
-
-const showPosts = (posts) => {
-  let postEl = posts.map((post)=>{
-    return (
-      <div className="container rounded m-2" style={{backgroundColor:"#F6F7F8"}}>
-        {post.text}
-      </div>
-    )
-  })
-  return postEl;
 }
 
 export default App;
